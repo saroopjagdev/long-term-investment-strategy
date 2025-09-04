@@ -10,6 +10,8 @@ end_date = dt.datetime.today().strftime('%Y-%m-%d')
 #end_date = "2010-01-01"
 lower_ma = 30
 upper_ma = 50
+cash_annual_return = 0.05
+cash_weekly_return = (1 + cash_annual_return)**(1/52) - 1
 
 def get_date_x_weeks_before(date_string, num_weeks_before):
     date_object = dt.datetime.strptime(date_string, "%Y-%m-%d")
@@ -25,11 +27,28 @@ data['crossover'] = data['signal'].diff()
 cumulative_returns = ((data['Close'] / data['Close'].iloc[0])*100) - 100
 
 plt.figure(figsize=(10, 6))
-plt.plot(cumulative_returns.index, cumulative_returns, label='Cumulative Returns', color = 'green', linewidth=2)
+
 plt.plot(data['MA30'], label='30-Week MA', color='blue', linestyle='--')
 plt.plot(data['MA50'], label='50-Week MA', color='red', linestyle='--')
+
+data['returns'] = data['Close'].pct_change()
+
+data['strategy_returns'] = np.where(
+    data['signal'].shift(1) == 1,
+    data['returns'],
+    cash_weekly_return
+)
+
+data['buy_and_hold'] = ((1 + data['returns']).cumprod() - 1) * 100
+data['strategy'] = ((1 + data['strategy_returns']).cumprod() - 1) * 100
+
+
+plt.plot(data.index, data['buy_and_hold'], label='Buy & Hold', color='green')
+plt.plot(data.index, data['strategy'], label='Shipman Strategy', color='blue')
+
 plt.xlabel('Date')
 plt.ylabel('Cumulative Returns (%)')
+plt.legend()
 plt.grid(True, linestyle='--', alpha=0.5)
 
 plt.scatter(
