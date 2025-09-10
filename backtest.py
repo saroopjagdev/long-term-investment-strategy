@@ -28,8 +28,6 @@ cumulative_returns = ((data['Close'] / data['Close'].iloc[0])*100) - 100
 
 plt.figure(figsize=(10, 6))
 
-plt.plot(data['MA30'], label='30-Week MA', color='blue', linestyle='--')
-plt.plot(data['MA50'], label='50-Week MA', color='red', linestyle='--')
 
 data['returns'] = data['Close'].pct_change()
 
@@ -53,13 +51,13 @@ plt.grid(True, linestyle='--', alpha=0.5)
 
 plt.scatter(
     data.index[data['crossover'] == 1],
-    data['Close'][data['crossover'] == 1],
+    data['strategy'][data['crossover'] == 1],
     marker='^', color='green', s=100, label='Buy Signal'
 )
 
 plt.scatter(
     data.index[data['crossover'] == -1],
-    data['Close'][data['crossover'] == -1],
+    data['strategy'][data['crossover'] == -1],
     marker='v', color='red', s=100, label='Sell Signal'
 )
 
