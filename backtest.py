@@ -3,11 +3,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime as dt
+from mpl_toolkits.mplot3d import Axes3D
 
 ticker = "SPY"
-start_date = "2015-01-01"
+start_date = "1980-01-01"
 end_date = dt.datetime.today().strftime('%Y-%m-%d')
-#end_date = "2010-01-01"
+#end_date = "2007-01-01"
 lower_ma = 30
 upper_ma = 50
 cash_annual_return = 0.05
@@ -93,7 +94,67 @@ for lower in range(1, 25):
 
 results_df = pd.DataFrame(results)
 
+
+results_all = []
+for start_date in range(1980, 2015, 3):
+    start_date_str = f"{start_date}-01-01"
+    results = []
+
+    for lower in range(1, 25):
+        for upper in range(lower + 1, 50):
+            final_value, single_data = get_ma_final_value(data, lower, upper, start_date_str, cash_weekly_return)
+            results.append({
+                'start_date': start_date,
+                'lower_ma': lower,
+                'upper_ma': upper,
+                'final_value': final_value,
+                'data': single_data
+            })
+    
+
+    top5 = sorted(results, key=lambda x: x['final_value'], reverse=True)[:5]
+    results_all.extend(top5)
+
+df_best = pd.DataFrame([{
+    'start_date': r['start_date'],
+    'lower_ma': r['lower_ma'],
+    'upper_ma': r['upper_ma'],
+    'final_value': r['final_value']
+} for r in results_all])
+
+fig = plt.figure(figsize=(12,8))
+ax = fig.add_subplot(111, projection='3d')
+
+scatter = ax.scatter(
+    df_best['start_date'],
+    df_best['lower_ma'],
+    df_best['upper_ma']
+)
+
+ax.set_xlabel("Start Year")
+ax.set_ylabel("Lower MA")
+ax.set_zlabel("Upper MA")
+ax.set_title("Top 5 MA Combos per Start Year")
+
+
+
+fig, ax = plt.subplots(figsize=(8,6))
+
+ax.scatter(
+    df_best['lower_ma'],
+    df_best['upper_ma'],
+    c='black', s=40
+)
+
+ax.set_xlabel("Lower MA")
+ax.set_ylabel("Upper MA")
+ax.set_title("All Top 5 MA Combos Across Start Years")
+ax.grid(True, linestyle='--', alpha=0.5)
+
 plt.show()
+
+
+
 
 top_20 = results_df.sort_values(by='final_value', ascending=False).head(20)
 print("Top 20 performing MA combos:")
